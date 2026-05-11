@@ -100,7 +100,7 @@ function StatsView() {
   );
 }
 
-import { AccentColor } from './hooks/useTheme';
+import type { AccentColor } from './hooks/useTheme';
 
 function ProfileView({ accent, onAccentChange }: { accent: AccentColor; onAccentChange: (a: AccentColor) => void }) {
   const { profile, signOut } = useAuth();
