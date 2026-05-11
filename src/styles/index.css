@@ -467,10 +467,11 @@ body {
 }
 
 @media (max-width: 768px) {
+  .app-layout { flex-direction: column; }
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
-  .main-content { margin-left: 0; padding: 16px; padding-bottom: calc(var(--bottom-nav-height) + 20px); }
-  .mobile-header { display: flex; }
+  .main-content { margin-left: 0; padding: 16px; padding-bottom: calc(var(--bottom-nav-height) + 20px); width: 100%; }
+  .mobile-header { display: flex; width: 100%; }
   .bottom-nav { display: block; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stat-card { padding: 16px; }
