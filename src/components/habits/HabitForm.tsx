@@ -73,7 +73,13 @@ export function HabitForm({ habit, onSubmit, onCancel }: HabitFormProps) {
           </div>
           <div style={{ flex: 1 }}>
             <label className="form-label">Unidad</label>
-            <input className="input" type="text" value={goalUnit} onChange={(e) => setGoalUnit(e.target.value)} placeholder="Ej: ml, min, págs" required />
+            <select className="input" value={goalUnit} onChange={(e) => setGoalUnit(e.target.value)} required style={{ appearance: 'none' }}>
+              <option value="vez">Vez (veces)</option>
+              <option value="minutos">Minutos</option>
+              <option value="horas">Horas</option>
+              <option value="ml">Mililitros (ml)</option>
+              <option value="páginas">Páginas</option>
+            </select>
           </div>
         </div>
       )}
