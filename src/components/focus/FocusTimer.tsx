@@ -12,15 +12,16 @@ interface FocusTimerProps {
 export function FocusTimer({ habit, onComplete, onClose }: FocusTimerProps) {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes default
   const [isActive, setIsActive] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [finalMinutes, setFinalMinutes] = useState(0);
   const [focusedMinutes, setFocusedMinutes] = useState(0);
 
   // If the habit's goal is small (e.g. 10 mins), start the timer at that value instead of 25.
+  const targetMinutes = habit.goal_value > 0 && habit.goal_value <= 60 ? habit.goal_value : 25;
+
   useEffect(() => {
-    if (habit.goal_value > 0 && habit.goal_value <= 60) {
-      setTimeLeft(habit.goal_value * 60);
-    }
-  }, [habit.goal_value]);
+    setTimeLeft(targetMinutes * 60);
+  }, [targetMinutes]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -28,36 +29,34 @@ export function FocusTimer({ habit, onComplete, onClose }: FocusTimerProps) {
     if (isActive && timeLeft > 0) {
       interval = window.setInterval(() => {
         setTimeLeft((time) => time - 1);
-        if (timeLeft % 60 === 0 && timeLeft < 25 * 60) {
+        if (timeLeft % 60 === 0 && timeLeft < targetMinutes * 60) {
           setFocusedMinutes((m) => m + 1);
         }
       }, 1000);
     } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
-      setIsFinished(true);
       setFocusedMinutes((m) => m + 1);
+      setFinalMinutes(targetMinutes);
+      setShowReview(true);
     }
 
     return () => {
       if (interval) window.clearInterval(interval);
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, targetMinutes]);
 
   const toggleTimer = () => setIsActive(!isActive);
 
   const handleStop = () => {
     setIsActive(false);
-    if (window.confirm('¿Detener la sesión de enfoque actual?')) {
-      onComplete(focusedMinutes);
-      onClose();
-    }
+    setFinalMinutes(focusedMinutes);
+    setShowReview(true);
   };
 
-  const handleComplete = () => {
-    // If they finish successfully, record the target minutes they set initially
-    const targetMinutes = habit.goal_value > 0 && habit.goal_value <= 60 ? habit.goal_value : 25;
-    onComplete(isFinished ? targetMinutes : focusedMinutes);
-    onClose();
+  const handleCompleteEarly = () => {
+    setIsActive(false);
+    setFinalMinutes(targetMinutes);
+    setShowReview(true);
   };
 
   const formatTime = (seconds: number) => {
@@ -66,7 +65,49 @@ export function FocusTimer({ habit, onComplete, onClose }: FocusTimerProps) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const progressPercent = 100 - (timeLeft / (habit.goal_value > 0 && habit.goal_value <= 60 ? habit.goal_value * 60 : 25 * 60)) * 100;
+  const progressPercent = 100 - (timeLeft / (targetMinutes * 60)) * 100;
+
+  if (showReview) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', padding: '24px'
+      }}>
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>Sesión terminada</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Ajusta el tiempo si es necesario antes de registrar</p>
+
+          <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: 'var(--radius-lg)', marginBottom: '32px' }}>
+            <label className="form-label" style={{ marginBottom: '12px' }}>Minutos de enfoque</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+              <button className="btn btn-ghost" style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-full)' }} 
+                onClick={() => setFinalMinutes(Math.max(0, finalMinutes - 5))}>-5</button>
+              <input 
+                type="number" 
+                value={finalMinutes} 
+                onChange={(e) => setFinalMinutes(Math.max(0, parseInt(e.target.value) || 0))}
+                style={{ width: '100px', fontSize: '2.5rem', textAlign: 'center', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontWeight: 700 }}
+              />
+              <button className="btn btn-ghost" style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-full)' }} 
+                onClick={() => setFinalMinutes(finalMinutes + 5)}>+5</button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn btn-ghost" style={{ color: 'var(--danger)', flex: '1 1 100%' }} onClick={onClose}>Descartar sesión</button>
+            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowReview(false)}>Reanudar</button>
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { onComplete(finalMinutes); onClose(); }}>Guardar</button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -111,41 +152,30 @@ export function FocusTimer({ habit, onComplete, onClose }: FocusTimerProps) {
           </div>
         </div>
 
-        {isFinished ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ color: 'var(--success)', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '1.2rem', fontWeight: 600 }}>
-              <CheckCircle2 /> ¡Sesión completada!
-            </div>
-            <button className="btn btn-primary btn-lg" onClick={handleComplete} style={{ width: '100%' }}>
-              Registrar {habit.goal_value > 0 && habit.goal_value <= 60 ? habit.goal_value : 25} minutos
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-            <button 
-              className="btn" 
-              onClick={handleStop}
-              style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-full)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
-            >
-              <Square size={24} fill="currentColor" />
-            </button>
-            <button 
-              className="btn" 
-              onClick={toggleTimer}
-              style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-full)', background: habit.color, color: '#fff', boxShadow: `0 4px 20px ${habit.color}40` }}
-            >
-              {isActive ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: '4px' }} />}
-            </button>
-            <button 
-              className="btn btn-ghost" 
-              onClick={handleComplete}
-              style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-full)' }}
-              title="Completar anticipadamente"
-            >
-              <CheckCircle2 size={24} />
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+          <button 
+            className="btn" 
+            onClick={handleStop}
+            style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-full)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+          >
+            <Square size={24} fill="currentColor" />
+          </button>
+          <button 
+            className="btn" 
+            onClick={toggleTimer}
+            style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-full)', background: habit.color, color: '#fff', boxShadow: `0 4px 20px ${habit.color}40` }}
+          >
+            {isActive ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: '4px' }} />}
+          </button>
+          <button 
+            className="btn btn-ghost" 
+            onClick={handleCompleteEarly}
+            style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-full)' }}
+            title="Completar anticipadamente"
+          >
+            <CheckCircle2 size={24} />
+          </button>
+        </div>
       </motion.div>
     </div>
   );
