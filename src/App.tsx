@@ -59,14 +59,14 @@ function DashboardView() {
 function HabitsView({ onAddHabit }: { onAddHabit: () => void }) {
   const { habits, updateHabit, deleteHabit } = useHabits();
   const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
-  const { logs, toggleLog, isCompletedToday, getLogsForHabit } = useHabitLogs(habitIds);
+  const { logs, toggleLog, isCompletedToday, getLogsForHabit, getProgressToday, updateLogProgress } = useHabitLogs(habitIds);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Eliminar este hábito?')) await deleteHabit(id);
   };
 
-  const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+  const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
     if (editingHabit) { await updateHabit(editingHabit.id, data); setEditingHabit(null); }
   };
 
@@ -75,6 +75,7 @@ function HabitsView({ onAddHabit }: { onAddHabit: () => void }) {
       <h1 className="page-title">Mis Hábitos</h1>
       <p className="page-subtitle">Gestiona todos tus hábitos</p>
       <HabitList habits={habits} logs={logs} isCompletedToday={isCompletedToday} getLogsForHabit={getLogsForHabit}
+        getProgressToday={getProgressToday} updateLogProgress={updateLogProgress}
         onToggle={(id) => toggleLog(id)} onEdit={(h) => setEditingHabit(h)} onDelete={handleDelete} onAdd={onAddHabit} />
       <Modal isOpen={!!editingHabit} onClose={() => setEditingHabit(null)} title="Editar hábito">
         <HabitForm habit={editingHabit} onSubmit={handleUpdate} onCancel={() => setEditingHabit(null)} />
@@ -152,7 +153,7 @@ function ProfileView({ accent, onAccentChange }: { accent: AccentColor; onAccent
 
 function NewHabitFormWrapper({ onClose }: { onClose: () => void }) {
   const { createHabit } = useHabits();
-  const handleSubmit = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+  const handleSubmit = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
     await createHabit(data);
     onClose();
   };

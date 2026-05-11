@@ -11,6 +11,8 @@ interface HabitFormProps {
     color: string;
     frequency_type: FrequencyType;
     target_count: number;
+    goal_value?: number;
+    goal_unit?: string;
   }) => void;
   onCancel: () => void;
 }
@@ -22,11 +24,23 @@ export function HabitForm({ habit, onSubmit, onCancel }: HabitFormProps) {
   const [color, setColor] = useState(habit?.color ?? HABIT_COLORS[0]);
   const [frequencyType, setFrequencyType] = useState<FrequencyType>(habit?.frequency_type ?? 'daily');
   const [targetCount, setTargetCount] = useState(habit?.target_count ?? 1);
+  const [isQuantitative, setIsQuantitative] = useState((habit?.goal_value ?? 1) > 1 || (habit?.goal_unit ?? 'vez') !== 'vez');
+  const [goalValue, setGoalValue] = useState(habit?.goal_value ?? 1);
+  const [goalUnit, setGoalUnit] = useState(habit?.goal_unit ?? 'vez');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSubmit({ name: name.trim(), description: description.trim() || undefined, icon, color, frequency_type: frequencyType, target_count: targetCount });
+    onSubmit({
+      name: name.trim(),
+      description: description.trim() || undefined,
+      icon,
+      color,
+      frequency_type: frequencyType,
+      target_count: targetCount,
+      goal_value: isQuantitative ? goalValue : 1,
+      goal_unit: isQuantitative ? goalUnit.trim() || 'vez' : 'vez'
+    });
   };
 
   return (
@@ -42,6 +56,27 @@ export function HabitForm({ habit, onSubmit, onCancel }: HabitFormProps) {
         <textarea className="textarea" value={description} onChange={(e) => setDescription(e.target.value)}
           placeholder="¿Por qué es importante este hábito?" rows={2} />
       </div>
+
+      <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }} onClick={() => setIsQuantitative(!isQuantitative)}>
+        <input type="checkbox" checked={isQuantitative} readOnly style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Hábito medible</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Ej: Beber 2000 ml de agua, Leer 20 páginas</div>
+        </div>
+      </div>
+
+      {isQuantitative && (
+        <div className="form-row" style={{ marginTop: '16px', marginBottom: '20px' }}>
+          <div style={{ flex: 1 }}>
+            <label className="form-label">Meta</label>
+            <input className="input" type="number" min={1} value={goalValue} onChange={(e) => setGoalValue(Math.max(1, parseInt(e.target.value) || 1))} placeholder="Ej: 2000" required />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="form-label">Unidad</label>
+            <input className="input" type="text" value={goalUnit} onChange={(e) => setGoalUnit(e.target.value)} placeholder="Ej: ml, min, págs" required />
+          </div>
+        </div>
+      )}
 
       <div className="form-group">
         <label className="form-label">Icono</label>
@@ -78,7 +113,7 @@ export function HabitForm({ habit, onSubmit, onCancel }: HabitFormProps) {
       {frequencyType !== 'daily' && (
         <div className="form-group">
           <label className="form-label">
-            Meta: {targetCount} {targetCount === 1 ? 'vez' : 'veces'} por {frequencyType === 'weekly' ? 'semana' : 'mes'}
+            Frecuencia: {targetCount} {targetCount === 1 ? 'vez' : 'veces'} por {frequencyType === 'weekly' ? 'semana' : 'mes'}
           </label>
           <input className="input" type="number" min={1} max={frequencyType === 'weekly' ? 7 : 31}
             value={targetCount} onChange={(e) => setTargetCount(Math.max(1, parseInt(e.target.value) || 1))} />

@@ -13,12 +13,12 @@ import type { Habit, FrequencyType } from '../../types';
 export function Dashboard() {
   const { habits, createHabit, updateHabit, deleteHabit } = useHabits();
   const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
-  const { logs, toggleLog, isCompletedToday, getLogsForHabit } = useHabitLogs(habitIds);
+  const { logs, toggleLog, isCompletedToday, getLogsForHabit, getProgressToday, updateLogProgress } = useHabitLogs(habitIds);
   const prevCompletedCountRef = useRef(0);
 
   useEffect(() => {
     if (habits.length === 0) return;
-    const completedCount = habits.filter(h => isCompletedToday(h.id)).length;
+    const completedCount = habits.filter(h => isCompletedToday(h.id, h.goal_value)).length;
     
     // Si completamos todos los hábitos y antes no lo estaban, lanzar confeti
     if (completedCount === habits.length && prevCompletedCountRef.current < habits.length) {
@@ -35,12 +35,12 @@ export function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
-  const handleCreate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+  const handleCreate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
     await createHabit(data);
     setShowForm(false);
   };
 
-  const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+  const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
     if (editingHabit) {
       await updateHabit(editingHabit.id, data);
       setEditingHabit(null);
@@ -71,8 +71,10 @@ export function Dashboard() {
           habits={habits}
           logs={logs}
           isCompletedToday={isCompletedToday}
+          getProgressToday={getProgressToday}
           getLogsForHabit={getLogsForHabit}
           onToggle={(id) => toggleLog(id)}
+          updateLogProgress={updateLogProgress}
           onEdit={(habit) => setEditingHabit(habit)}
           onDelete={handleDelete}
           onAdd={() => setShowForm(true)}

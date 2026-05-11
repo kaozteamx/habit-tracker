@@ -8,16 +8,18 @@ import { getFrequencyLabel } from '../../lib/utils';
 interface HabitListProps {
   habits: Habit[];
   logs: HabitLog[];
-  isCompletedToday: (habitId: string) => boolean;
+  isCompletedToday: (habitId: string, goalValue?: number) => boolean;
+  getProgressToday: (habitId: string) => number;
   getLogsForHabit: (habitId: string) => HabitLog[];
   onToggle: (habitId: string) => void;
+  updateLogProgress: (habitId: string, progressValue: number) => void;
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
   onAdd: () => void;
   filterType?: FrequencyType | 'all';
 }
 
-export function HabitList({ habits, isCompletedToday, getLogsForHabit, onToggle, onEdit, onDelete, onAdd, filterType = 'all' }: HabitListProps) {
+export function HabitList({ habits, isCompletedToday, getProgressToday, getLogsForHabit, onToggle, updateLogProgress, onEdit, onDelete, onAdd, filterType = 'all' }: HabitListProps) {
   const filtered = filterType === 'all' ? habits : habits.filter((h) => h.frequency_type === filterType);
 
   if (filtered.length === 0) {
@@ -55,8 +57,10 @@ export function HabitList({ habits, isCompletedToday, getLogsForHabit, onToggle,
                   key={habit.id}
                   habit={habit}
                   logs={getLogsForHabit(habit.id)}
-                  isCompleted={isCompletedToday(habit.id)}
+                  isCompleted={isCompletedToday(habit.id, habit.goal_value)}
+                  currentProgress={getProgressToday(habit.id)}
                   onToggle={() => onToggle(habit.id)}
+                  onUpdateProgress={(val) => updateLogProgress(habit.id, val)}
                   onEdit={() => onEdit(habit)}
                   onDelete={() => onDelete(habit.id)}
                 />

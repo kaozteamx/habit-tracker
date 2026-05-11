@@ -38,6 +38,8 @@ export function useHabits() {
       color?: string;
       frequency_type: FrequencyType;
       target_count?: number;
+      goal_value?: number;
+      goal_unit?: string;
     }) => {
       if (!user) return null;
       const { data, error } = await supabase

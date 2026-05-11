@@ -9,6 +9,8 @@ export interface Habit {
   color: string;
   frequency_type: FrequencyType;
   target_count: number;
+  goal_value: number;
+  goal_unit: string;
   created_at: string;
   archived_at: string | null;
   sort_order: number;
@@ -19,6 +21,7 @@ export interface HabitLog {
   habit_id: string;
   user_id: string;
   completed_at: string;
+  progress_value: number;
   notes: string | null;
   created_at: string;
 }
