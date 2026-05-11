@@ -8,6 +8,9 @@ import { HabitList } from '../habits/HabitList';
 import { HabitForm } from '../habits/HabitForm';
 import { Modal } from '../ui/Modal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { LevelProgress } from './LevelProgress';
+import { BadgesShowcase } from './BadgesShowcase';
+import { calculateXP, calculateLevel, getUnlockedBadges } from '../../lib/gamification';
 import { formatDate } from '../../lib/utils';
 import type { Habit, FrequencyType } from '../../types';
 
@@ -17,12 +20,32 @@ export function Dashboard() {
   const { logs, toggleLog, isCompletedToday, getLogsForHabit, getProgressToday, updateLogProgress } = useHabitLogs(habitIds);
   const prevCompletedCountRef = useRef(0);
 
+  // Gamification stats
+  const xp = useMemo(() => calculateXP(habits, logs), [habits, logs]);
+  const levelInfo = useMemo(() => calculateLevel(xp), [xp]);
+  const unlockedBadges = useMemo(() => getUnlockedBadges(habits, logs, levelInfo.level), [habits, logs, levelInfo.level]);
+
+  // Level up detection
+  const prevLevelRef = useRef(levelInfo.level);
+  useEffect(() => {
+    if (levelInfo.level > prevLevelRef.current) {
+      // Level up!
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.5 },
+        colors: ['#FDE047', '#F59E0B', '#10B981', '#3B82F6']
+      });
+      prevLevelRef.current = levelInfo.level;
+    }
+  }, [levelInfo.level]);
+
   useEffect(() => {
     if (habits.length === 0) return;
     const completedCount = habits.filter(h => isCompletedToday(h.id, h.goal_value)).length;
     
     // Si completamos todos los hábitos y antes no lo estaban, lanzar confeti
-    if (completedCount === habits.length && prevCompletedCountRef.current < habits.length) {
+    if (completedCount === habits.length && prevCompletedCountRef.current < habits.length && habits.length > 0) {
       confetti({
         particleCount: 150,
         spread: 70,
@@ -62,10 +85,14 @@ export function Dashboard() {
 
   return (
     <div>
-      <div style={{ marginBottom: '8px' }}>
-        <h1 className="page-title">¡Hola! 👋</h1>
-        <p className="page-subtitle">{formatDate(new Date(), "EEEE, d 'de' MMMM yyyy")}</p>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="page-title">¡Hola! 👋</h1>
+          <p className="page-subtitle">{formatDate(new Date(), "EEEE, d 'de' MMMM yyyy")}</p>
+        </div>
       </div>
+
+      <LevelProgress {...levelInfo} />
 
       <StatsCards habits={habits} logs={logs} />
       <CalendarHeatmap habits={habits} logs={logs} />
@@ -87,6 +114,8 @@ export function Dashboard() {
           onAdd={() => setShowForm(true)}
         />
       </div>
+
+      <BadgesShowcase unlockedIds={unlockedBadges} />
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Nuevo hábito">
         <HabitForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
