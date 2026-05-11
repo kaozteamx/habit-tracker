@@ -1,7 +1,7 @@
 import { Check, Flame, MoreVertical, Trash2, Edit3, Play } from 'lucide-react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Habit, HabitLog } from '../../types';
 import { calculateStreak, getCompletionsInPeriod, getFrequencyTargetLabel } from '../../lib/utils';
 import { FocusTimer } from '../focus/FocusTimer';
@@ -137,18 +137,16 @@ export function HabitCard({ habit, logs, isCompleted, currentProgress = 0, onTog
         )}
       </div>
 
-      <AnimatePresence>
-        {showTimer && createPortal(
-          <FocusTimer
-            habit={habit}
-            onComplete={(minutes) => {
-              onUpdateProgress?.(Math.min(habit.goal_value, currentProgress + minutes));
-            }}
-            onClose={() => setShowTimer(false)}
-          />,
-          document.body
-        )}
-      </AnimatePresence>
+      {showTimer && createPortal(
+        <FocusTimer
+          habit={habit}
+          onComplete={(minutes) => {
+            onUpdateProgress?.(Math.min(habit.goal_value, currentProgress + minutes));
+          }}
+          onClose={() => setShowTimer(false)}
+        />,
+        document.body
+      )}
     </motion.div>
   );
 }
