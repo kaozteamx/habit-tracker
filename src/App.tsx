@@ -1,0 +1,142 @@
+import { useState, useMemo } from 'react';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
+import { useHabits } from './hooks/useHabits';
+import { useHabitLogs } from './hooks/useHabitLogs';
+import { LoginPage } from './components/auth/LoginPage';
+import { AppLayout } from './components/layout/AppLayout';
+import { Dashboard } from './components/dashboard/Dashboard';
+import { HabitList } from './components/habits/HabitList';
+import { HabitForm } from './components/habits/HabitForm';
+import { StatsCards } from './components/dashboard/StatsCards';
+import { CalendarHeatmap } from './components/dashboard/CalendarHeatmap';
+import { Modal } from './components/ui/Modal';
+import type { ViewMode, Habit, FrequencyType } from './types';
+
+function AppContent() {
+  const { user, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [currentView, setCurrentView] = useState<ViewMode>('today');
+  const [showForm, setShowForm] = useState(false);
+
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return (
+    <AppLayout
+      currentView={currentView}
+      onViewChange={setCurrentView}
+      onAddHabit={() => setShowForm(true)}
+      theme={theme}
+      onToggleTheme={toggleTheme}
+    >
+      {currentView === 'today' && <DashboardView />}
+      {currentView === 'habits' && <HabitsView onAddHabit={() => setShowForm(true)} />}
+      {currentView === 'stats' && <StatsView />}
+      {currentView === 'profile' && <ProfileView />}
+
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Nuevo hábito">
+        <NewHabitFormWrapper onClose={() => setShowForm(false)} />
+      </Modal>
+    </AppLayout>
+  );
+}
+
+function DashboardView() {
+  return <Dashboard />;
+}
+
+function HabitsView({ onAddHabit }: { onAddHabit: () => void }) {
+  const { habits, updateHabit, deleteHabit } = useHabits();
+  const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
+  const { logs, toggleLog, isCompletedToday, getLogsForHabit } = useHabitLogs(habitIds);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Eliminar este hábito?')) await deleteHabit(id);
+  };
+
+  const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+    if (editingHabit) { await updateHabit(editingHabit.id, data); setEditingHabit(null); }
+  };
+
+  return (
+    <div>
+      <h1 className="page-title">Mis Hábitos</h1>
+      <p className="page-subtitle">Gestiona todos tus hábitos</p>
+      <HabitList habits={habits} logs={logs} isCompletedToday={isCompletedToday} getLogsForHabit={getLogsForHabit}
+        onToggle={(id) => toggleLog(id)} onEdit={(h) => setEditingHabit(h)} onDelete={handleDelete} onAdd={onAddHabit} />
+      <Modal isOpen={!!editingHabit} onClose={() => setEditingHabit(null)} title="Editar hábito">
+        <HabitForm habit={editingHabit} onSubmit={handleUpdate} onCancel={() => setEditingHabit(null)} />
+      </Modal>
+    </div>
+  );
+}
+
+function StatsView() {
+  const { habits } = useHabits();
+  const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
+  const { logs } = useHabitLogs(habitIds);
+
+  return (
+    <div>
+      <h1 className="page-title">Estadísticas</h1>
+      <p className="page-subtitle">Tu progreso en números</p>
+      <StatsCards habits={habits} logs={logs} />
+      <div style={{ marginTop: '24px' }}>
+        <CalendarHeatmap habits={habits} logs={logs} />
+      </div>
+    </div>
+  );
+}
+
+function ProfileView() {
+  const { profile, signOut } = useAuth();
+  return (
+    <div>
+      <h1 className="page-title">Perfil</h1>
+      <p className="page-subtitle">Tu cuenta</p>
+      <div className="card profile-card">
+        {profile?.avatar_url ? (
+          <img className="profile-avatar" src={profile.avatar_url} alt="" />
+        ) : (
+          <div className="profile-avatar" style={{ background: 'var(--accent-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, color: 'var(--accent)' }}>
+            {(profile?.full_name || profile?.email)?.[0]?.toUpperCase()}
+          </div>
+        )}
+        <div className="profile-name">{profile?.full_name || 'Usuario'}</div>
+        <div className="profile-email">{profile?.email}</div>
+        <button className="btn btn-danger" onClick={signOut} style={{ marginTop: '16px' }}>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NewHabitFormWrapper({ onClose }: { onClose: () => void }) {
+  const { createHabit } = useHabits();
+  const handleSubmit = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number }) => {
+    await createHabit(data);
+    onClose();
+  };
+  return <HabitForm onSubmit={handleSubmit} onCancel={onClose} />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
