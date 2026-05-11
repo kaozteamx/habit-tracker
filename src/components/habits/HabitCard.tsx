@@ -1,5 +1,6 @@
 import { Check, Flame, MoreVertical, Trash2, Edit3 } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import type { Habit, HabitLog } from '../../types';
 import { calculateStreak, getCompletionsInPeriod, getFrequencyTargetLabel } from '../../lib/utils';
 
@@ -19,7 +20,13 @@ export function HabitCard({ habit, logs, isCompleted, onToggle, onEdit, onDelete
   const progress = Math.min((periodCompletions / habit.target_count) * 100, 100);
 
   return (
-    <div className={`habit-card ${isCompleted ? 'completed' : ''}`}>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ y: -2 }}
+      className={`habit-card ${isCompleted ? 'completed' : ''}`}
+    >
       <div
         className={`habit-checkbox ${isCompleted ? 'checked' : ''}`}
         style={{ background: isCompleted ? habit.color : 'transparent' }}
@@ -74,6 +81,6 @@ export function HabitCard({ habit, logs, isCompleted, onToggle, onEdit, onDelete
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

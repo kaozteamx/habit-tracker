@@ -31,10 +31,6 @@
   --text-primary: #EAEAF0;
   --text-secondary: #8888A0;
   --text-tertiary: #55556A;
-  --accent: #8B5CF6;
-  --accent-hover: #7C3AED;
-  --accent-subtle: rgba(139,92,246,0.12);
-  --accent-glow: rgba(139,92,246,0.25);
   --success: #34D399;
   --success-subtle: rgba(52,211,153,0.12);
   --danger: #F87171;
@@ -56,10 +52,6 @@
   --text-primary: #18181B;
   --text-secondary: #71717A;
   --text-tertiary: #A1A1AA;
-  --accent: #7C3AED;
-  --accent-hover: #6D28D9;
-  --accent-subtle: rgba(124,58,237,0.08);
-  --accent-glow: rgba(124,58,237,0.15);
   --success: #10B981;
   --success-subtle: rgba(16,185,129,0.1);
   --danger: #EF4444;
@@ -68,6 +60,40 @@
   --glass-bg: rgba(255,255,255,0.85);
   --glass-border: rgba(0,0,0,0.06);
 }
+
+/* === ACCENT COLORS === */
+/* Violet (Default) */
+[data-theme="dark"][data-accent="violet"], [data-theme="dark"]:not([data-accent]) {
+  --accent: #8B5CF6; --accent-hover: #7C3AED; --accent-subtle: rgba(139,92,246,0.12); --accent-glow: rgba(139,92,246,0.25);
+}
+[data-theme="light"][data-accent="violet"], [data-theme="light"]:not([data-accent]) {
+  --accent: #7C3AED; --accent-hover: #6D28D9; --accent-subtle: rgba(124,58,237,0.08); --accent-glow: rgba(124,58,237,0.15);
+}
+
+/* Emerald */
+[data-theme="dark"][data-accent="emerald"] {
+  --accent: #10B981; --accent-hover: #059669; --accent-subtle: rgba(16,185,129,0.12); --accent-glow: rgba(16,185,129,0.25);
+}
+[data-theme="light"][data-accent="emerald"] {
+  --accent: #059669; --accent-hover: #047857; --accent-subtle: rgba(5,150,105,0.08); --accent-glow: rgba(5,150,105,0.15);
+}
+
+/* Rose */
+[data-theme="dark"][data-accent="rose"] {
+  --accent: #F43F5E; --accent-hover: #E11D48; --accent-subtle: rgba(244,63,94,0.12); --accent-glow: rgba(244,63,94,0.25);
+}
+[data-theme="light"][data-accent="rose"] {
+  --accent: #E11D48; --accent-hover: #BE123C; --accent-subtle: rgba(225,29,72,0.08); --accent-glow: rgba(225,29,72,0.15);
+}
+
+/* Blue */
+[data-theme="dark"][data-accent="blue"] {
+  --accent: #3B82F6; --accent-hover: #2563EB; --accent-subtle: rgba(59,130,246,0.12); --accent-glow: rgba(59,130,246,0.25);
+}
+[data-theme="light"][data-accent="blue"] {
+  --accent: #2563EB; --accent-hover: #1D4ED8; --accent-subtle: rgba(37,99,235,0.08); --accent-glow: rgba(37,99,235,0.15);
+}
+
 
 html { font-size: 16px; }
 body {

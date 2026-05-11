@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { useHabits } from '../../hooks/useHabits';
 import { useHabitLogs } from '../../hooks/useHabitLogs';
 import { StatsCards } from './StatsCards';
@@ -13,6 +14,23 @@ export function Dashboard() {
   const { habits, createHabit, updateHabit, deleteHabit } = useHabits();
   const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
   const { logs, toggleLog, isCompletedToday, getLogsForHabit } = useHabitLogs(habitIds);
+  const prevCompletedCountRef = useRef(0);
+
+  useEffect(() => {
+    if (habits.length === 0) return;
+    const completedCount = habits.filter(h => isCompletedToday(h.id)).length;
+    
+    // Si completamos todos los hábitos y antes no lo estaban, lanzar confeti
+    if (completedCount === habits.length && prevCompletedCountRef.current < habits.length) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#8B5CF6', '#10B981', '#F43F5E', '#3B82F6', '#FBBF24']
+      });
+    }
+    prevCompletedCountRef.current = completedCount;
+  }, [logs, habits, isCompletedToday]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);

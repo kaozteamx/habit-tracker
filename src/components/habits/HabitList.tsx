@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import type { Habit, HabitLog, FrequencyType } from '../../types';
 import { HabitCard } from './HabitCard';
 import { EmptyState } from '../ui/EmptyState';
@@ -48,17 +49,19 @@ export function HabitList({ habits, isCompletedToday, getLogsForHabit, onToggle,
             </div>
           )}
           <div className="habits-list">
-            {group.habits.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                logs={getLogsForHabit(habit.id)}
-                isCompleted={isCompletedToday(habit.id)}
-                onToggle={() => onToggle(habit.id)}
-                onEdit={() => onEdit(habit)}
-                onDelete={() => onDelete(habit.id)}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {group.habits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  logs={getLogsForHabit(habit.id)}
+                  isCompleted={isCompletedToday(habit.id)}
+                  onToggle={() => onToggle(habit.id)}
+                  onEdit={() => onEdit(habit)}
+                  onDelete={() => onDelete(habit.id)}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       ))}

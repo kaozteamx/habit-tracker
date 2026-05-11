@@ -15,7 +15,7 @@ import type { ViewMode, Habit, FrequencyType } from './types';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, accent, setAccent } = useTheme();
   const [currentView, setCurrentView] = useState<ViewMode>('today');
   const [showForm, setShowForm] = useState(false);
 
@@ -43,7 +43,7 @@ function AppContent() {
       {currentView === 'today' && <DashboardView />}
       {currentView === 'habits' && <HabitsView onAddHabit={() => setShowForm(true)} />}
       {currentView === 'stats' && <StatsView />}
-      {currentView === 'profile' && <ProfileView />}
+      {currentView === 'profile' && <ProfileView accent={accent} onAccentChange={setAccent} />}
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Nuevo hábito">
         <NewHabitFormWrapper onClose={() => setShowForm(false)} />
@@ -100,13 +100,23 @@ function StatsView() {
   );
 }
 
-function ProfileView() {
+import { AccentColor } from './hooks/useTheme';
+
+function ProfileView({ accent, onAccentChange }: { accent: AccentColor; onAccentChange: (a: AccentColor) => void }) {
   const { profile, signOut } = useAuth();
+  
+  const ACCENT_COLORS: { id: AccentColor; name: string; hex: string }[] = [
+    { id: 'violet', name: 'Violeta', hex: '#8B5CF6' },
+    { id: 'emerald', name: 'Esmeralda', hex: '#10B981' },
+    { id: 'rose', name: 'Rosa', hex: '#F43F5E' },
+    { id: 'blue', name: 'Azul', hex: '#3B82F6' }
+  ];
+
   return (
     <div>
       <h1 className="page-title">Perfil</h1>
       <p className="page-subtitle">Tu cuenta</p>
-      <div className="card profile-card">
+      <div className="card profile-card" style={{ marginBottom: '24px' }}>
         {profile?.avatar_url ? (
           <img className="profile-avatar" src={profile.avatar_url} alt="" />
         ) : (
@@ -119,6 +129,22 @@ function ProfileView() {
         <button className="btn btn-danger" onClick={signOut} style={{ marginTop: '16px' }}>
           Cerrar sesión
         </button>
+      </div>
+
+      <div className="card">
+        <h3 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Personalización</h3>
+        <p className="form-label" style={{ marginBottom: '12px' }}>Color de Acento</p>
+        <div className="color-picker" style={{ gap: '12px' }}>
+          {ACCENT_COLORS.map((c) => (
+            <div 
+              key={c.id} 
+              className={`color-swatch ${accent === c.id ? 'selected' : ''}`}
+              style={{ background: c.hex, width: '40px', height: '40px' }}
+              onClick={() => onAccentChange(c.id)}
+              title={c.name}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
