@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import type { Habit, HabitLog } from '../../types';
-import { calculateStreak, getCompletionsInPeriod, getFrequencyTargetLabel } from '../../lib/utils';
+import { calculateStreak, getCompletionsInPeriod, getFrequencyTargetLabel, getDeadlineText } from '../../lib/utils';
 import { FocusTimer } from '../focus/FocusTimer';
 
 interface HabitCardProps {
@@ -87,6 +87,13 @@ export function HabitCard({ habit, logs, isCompleted, currentProgress = 0, onTog
           ) : (
             <span>{getFrequencyTargetLabel(habit.frequency_type, habit.target_count)}</span>
           )}
+          
+          {!isCompleted && habit.frequency_type !== 'daily' && (
+            <span style={{ marginLeft: '8px', color: 'var(--text-tertiary)', fontSize: '0.7rem' }}>
+              • {getDeadlineText(habit.frequency_type)}
+            </span>
+          )}
+
           {streak > 0 && (
             <span className="habit-streak" style={{ marginLeft: '8px' }}>
               <Flame size={12} /> {streak}

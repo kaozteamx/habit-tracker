@@ -8,6 +8,7 @@ import {
   eachDayOfInterval,
   subDays,
   differenceInDays,
+  differenceInHours,
   parseISO,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -151,3 +152,29 @@ export const HABIT_ICONS = [
   '🎯', '🧹', '💊', '🎵', '🌿', '🐕', '📱', '🧠',
   '☀️', '🌙', '❤️', '⭐', '🔥', '✨', '🎨', '💻',
 ];
+
+export function getDeadlineText(frequencyType: FrequencyType): string | null {
+  if (frequencyType === 'daily') return null;
+  
+  const now = new Date();
+  let endDate: Date;
+  
+  if (frequencyType === 'weekly') {
+    endDate = endOfWeek(now, { weekStartsOn: 1 });
+  } else if (frequencyType === 'monthly') {
+    endDate = endOfMonth(now);
+  } else {
+    return null;
+  }
+  
+  const diffHours = differenceInHours(endDate, now);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffDays > 0) {
+    return `Quedan ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+  } else if (diffHours > 0) {
+    return `Quedan ${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+  } else {
+    return 'Termina hoy';
+  }
+}
