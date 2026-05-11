@@ -404,8 +404,8 @@ body {
   background: var(--bg-input); transition: background var(--transition);
 }
 .heatmap-cell.level-1 { background: var(--accent-subtle); }
-.heatmap-cell.level-2 { background: rgba(139,92,246,0.35); }
-.heatmap-cell.level-3 { background: rgba(139,92,246,0.55); }
+.heatmap-cell.level-2 { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.heatmap-cell.level-3 { background: color-mix(in srgb, var(--accent) 70%, transparent); }
 .heatmap-cell.level-4 { background: var(--accent); }
 .heatmap-labels { display: flex; gap: 3px; margin-top: 8px; }
 .heatmap-month-label { font-size: 0.625rem; color: var(--text-tertiary); }
