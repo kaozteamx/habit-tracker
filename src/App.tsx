@@ -11,6 +11,7 @@ import { HabitForm } from './components/habits/HabitForm';
 import { StatsCards } from './components/dashboard/StatsCards';
 import { CalendarHeatmap } from './components/dashboard/CalendarHeatmap';
 import { Modal } from './components/ui/Modal';
+import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import type { ViewMode, Habit, FrequencyType } from './types';
 
 function AppContent() {
@@ -61,9 +62,17 @@ function HabitsView({ onAddHabit }: { onAddHabit: () => void }) {
   const habitIds = useMemo(() => habits.map((h) => h.id), [habits]);
   const { logs, toggleLog, isCompletedToday, getLogsForHabit, getProgressToday, updateLogProgress } = useHabitLogs(habitIds);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Eliminar este hábito?')) await deleteHabit(id);
+    setHabitToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (habitToDelete) {
+      await deleteHabit(habitToDelete);
+      setHabitToDelete(null);
+    }
   };
 
   const handleUpdate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
@@ -80,6 +89,14 @@ function HabitsView({ onAddHabit }: { onAddHabit: () => void }) {
       <Modal isOpen={!!editingHabit} onClose={() => setEditingHabit(null)} title="Editar hábito">
         <HabitForm habit={editingHabit} onSubmit={handleUpdate} onCancel={() => setEditingHabit(null)} />
       </Modal>
+      <ConfirmDialog
+        isOpen={!!habitToDelete}
+        title="Eliminar hábito"
+        message="¿Estás seguro de que deseas eliminar este hábito? Esta acción no se puede deshacer y borrará todo el historial."
+        confirmLabel="Eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setHabitToDelete(null)}
+      />
     </div>
   );
 }

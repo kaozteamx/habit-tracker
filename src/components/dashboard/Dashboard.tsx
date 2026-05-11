@@ -7,6 +7,7 @@ import { CalendarHeatmap } from './CalendarHeatmap';
 import { HabitList } from '../habits/HabitList';
 import { HabitForm } from '../habits/HabitForm';
 import { Modal } from '../ui/Modal';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { formatDate } from '../../lib/utils';
 import type { Habit, FrequencyType } from '../../types';
 
@@ -34,6 +35,7 @@ export function Dashboard() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
 
   const handleCreate = async (data: { name: string; description?: string; icon: string; color: string; frequency_type: FrequencyType; target_count: number; goal_value?: number; goal_unit?: string }) => {
     await createHabit(data);
@@ -48,8 +50,13 @@ export function Dashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Eliminar este hábito? Esta acción no se puede deshacer.')) {
-      await deleteHabit(id);
+    setHabitToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (habitToDelete) {
+      await deleteHabit(habitToDelete);
+      setHabitToDelete(null);
     }
   };
 
@@ -88,6 +95,15 @@ export function Dashboard() {
       <Modal isOpen={!!editingHabit} onClose={() => setEditingHabit(null)} title="Editar hábito">
         <HabitForm habit={editingHabit} onSubmit={handleUpdate} onCancel={() => setEditingHabit(null)} />
       </Modal>
+      
+      <ConfirmDialog
+        isOpen={!!habitToDelete}
+        title="Eliminar hábito"
+        message="¿Estás seguro de que deseas eliminar este hábito? Esta acción no se puede deshacer y borrará todo el historial."
+        confirmLabel="Eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setHabitToDelete(null)}
+      />
     </div>
   );
 }
